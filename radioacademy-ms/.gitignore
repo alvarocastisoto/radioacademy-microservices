@@ -26,9 +26,9 @@ Thumbs.db
 # ===== Env / secrets =====
 .env
 *.env
-application-*.yml
-application-*.yaml
-application-*.properties
+application*.yml  <-- Quitamos el guion
+application*.yaml <-- Quitamos el guion
+application*.properties <-- Quitamos el guion
 *.key
 *.pem
 secrets/
