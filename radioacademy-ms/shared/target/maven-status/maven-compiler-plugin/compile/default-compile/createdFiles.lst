@@ -1,4 +1,0 @@
-com\alvaro\radioacademy\shared\security\JwtValidator.class
-com\alvaro\radioacademy\shared\security\JwtRoleConverter.class
-com\alvaro\radioacademy\shared\util\RSAKeyUtils.class
-com\alvaro\radioacademy\shared\security\SharedSecurityConfig.class
