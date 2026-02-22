@@ -1,0 +1,63 @@
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    depends_on:
+      - postgres-db
+    environment:
+      # Estos nombres de variable sobreescriben cualquier cosa del application.yml
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/radioacademy_auth
+      - SPRING_DATASOURCE_USERNAME=your_user
+      - SPRING_DATASOURCE_PASSWORD=your_password
+      - SPRING_FLYWAY_USER=your_user
+      - SPRING_FLYWAY_PASSWORD=your_password
+
+  catalog-service:
+    build: ./catalog-service
+    container_name: catalog-service
+    depends_on:
+      - postgres-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/radioacademy_catalog
+      - SPRING_DATASOURCE_USERNAME=your_user
+      - SPRING_DATASOURCE_PASSWORD=your_password
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    depends_on:
+      - postgres-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/radioacademy_user
+      - SPRING_DATASOURCE_USERNAME=your_user
+      - SPRING_DATASOURCE_PASSWORD=your_password
+
+  commerce-service:
+    build: ./commerce-service
+    container_name: commerce-service
+    depends_on:
+      - postgres-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/radioacademy_commerce
+      - SPRING_DATASOURCE_USERNAME=your_user
+      - SPRING_DATASOURCE_PASSWORD=your_password
+
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      - auth-service
+      - catalog-service

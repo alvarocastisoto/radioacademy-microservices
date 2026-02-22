@@ -1,0 +1,11 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: notifications-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: classpath:public_key.pem

@@ -1,0 +1,5 @@
+CREATE DATABASE radioacademy_auth;
+CREATE DATABASE radioacademy_catalog;
+CREATE DATABASE radioacademy_commerce;
+CREATE DATABASE radioacademy_notifications;
+CREATE DATABASE radioacademy_user;
