@@ -11,15 +11,29 @@ spring:
           uri: http://auth-service:8081
           predicates:
             - Path=/api/auth/**
+          # El Auth no lleva filtro, es la puerta de entrada libre
+
         - id: commerce-service
           uri: http://commerce-service:8082
           predicates:
             - Path=/api/payment/**
+          filters:
+            - AuthenticationFilter # 👈 ¡Filtro activado!
+
         - id: user-service
           uri: http://user-service:8086
           predicates:
             - Path=/api/users/**
+          filters:
+            - AuthenticationFilter # 👈 ¡Filtro activado!
+
         - id: catalog-service
           uri: http://catalog-service:8084
           predicates:
             - Path=/api/courses/**, /api/admin/**
+          filters:
+            - AuthenticationFilter # 👈 ¡Filtro activado!
+
+app:
+  jwt:
+    public-key: classpath:public_key.pem

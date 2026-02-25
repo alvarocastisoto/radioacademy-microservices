@@ -1,54 +1,47 @@
 package com.alvaro.radioacademy.auth.security;
 
+import com.alvaro.radioacademy.shared.util.RSAKeyUtils; // Tu clase del módulo shared
+import com.alvaro.radioacademy.auth.entity.User; // Tu entidad User
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource; // 👈 Ojo a esta importación
-import org.springframework.stereotype.Service;
-import io.jsonwebtoken.Jwts;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import jakarta.annotation.PostConstruct;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import com.alvaro.radioacademy.auth.entity.User;
-import com.alvaro.radioacademy.shared.util.RSAKeyUtils;
 
-@Service
+@Component
 public class JwtProvider {
 
-    private final PrivateKey privateKey;
-    private final long jwtExpiration;
+    @Value("${app.jwt.private-key}")
+    private Resource privateKeyResource;
 
-    public JwtProvider(
-            // 👇 CAMBIO CLAVE: Usamos Resource en lugar de String
-            @Value("${app.jwt.private-key}") Resource privateKeyResource,
-            @Value("${app.jwt.expiration-time}") long jwtExpiration) {
+    private PrivateKey privateKey;
 
-        this.jwtExpiration = jwtExpiration;
+    @PostConstruct
+    public void init() {
         try {
-            // 👇 Leemos el contenido real del archivo aquí mismo
-            String privateKeyContent = new String(privateKeyResource.getInputStream().readAllBytes(),
-                    StandardCharsets.UTF_8);
-
-            // Y ahora sí, le pasamos el bloque de texto gigante a tu utilidad
-            this.privateKey = RSAKeyUtils.getPrivateKey(privateKeyContent);
-
+            String keyStr = new String(privateKeyResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            this.privateKey = RSAKeyUtils.getPrivateKey(keyStr);
         } catch (Exception e) {
-            throw new RuntimeException("Error al inicializar la llave RSA", e);
+            throw new RuntimeException("Error al cargar la llave privada en Auth Service", e);
         }
     }
 
-    public String createToken(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole().name());
-        claims.put("userId", user.getId());
+    public String generateToken(User user) {
+        long expirationTime = 1000 * 60 * 60 * 24;
 
         return Jwts.builder()
-                .setClaims(claims)
                 .setSubject(user.getEmail())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .claim("userId", user.getId().toString())
+                .claim("role", user.getRole().name())
+                .claim("email", user.getEmail()) // 👈 Dato extra
+                .claim("name", user.getUsername()) // 👈 Dato extra
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(privateKey, SignatureAlgorithm.RS256)
                 .compact();
     }
